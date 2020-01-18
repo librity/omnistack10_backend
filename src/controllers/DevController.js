@@ -43,11 +43,53 @@ module.exports = {
     return response.json(dev);
   },
 
-  /**
-   * TO DO
-   */
+  async update(request, response) {
+    const { id } = request.params;
 
-  async update() {},
+    const dev = await Dev.findById(id);
 
-  async destroy() {}
+    if (!dev) {
+      return response.status(404).json({ error: "Dev not found" });
+    }
+
+    const {
+      name = dev.name,
+      avatar_url = dev.avatar_url,
+      bio = dev.bio,
+      latitude = dev.location.coordinates[1],
+      longitude = dev.location.coordinates[0]
+    } = request.body;
+
+    let { techs } = request.body;
+    let techsArray;
+
+    if (!techs) {
+      techsArray = dev.techs;
+    } else {
+      techsArray = parseStringAsArray(techs);
+    }
+
+    const location = {
+      type: "Point",
+      coordinates: [longitude, latitude]
+    };
+
+    await dev.update({
+      name,
+      avatar_url,
+      bio,
+      techs: techsArray,
+      location
+    });
+
+    return response.json(dev);
+  },
+
+  async destroy(request, response) {
+    const { id } = request.params;
+
+    const dev = await Dev.findByIdAndDelete(id);
+
+    return response.json(dev);
+  }
 };
